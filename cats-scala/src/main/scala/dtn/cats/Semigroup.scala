@@ -7,7 +7,7 @@ trait Semigroup[T]:
 object Semigroup:
   def apply[T](using sg: Semigroup[T]): Semigroup[T] = sg
 
-  implicit class SemigroupExtension[T](x: T):
+  implicit class SemigroupExtensions[T](x: T):
     def |+|(y: T)(using sg: Semigroup[T]): T = sg.combine(x, y)
 
   val intAddSg: Semigroup[Int] =
@@ -34,3 +34,5 @@ object Semigroup:
     val folder = (acc: Map[K, V], y_kv: (K, V)) => acc.updatedWith(y_kv._1)(_.map(_ |+| y_kv._2).orElse(Some(y_kv._2)))
     (x, y) => y.foldLeft(x)(folder)
   }
+  
+  
