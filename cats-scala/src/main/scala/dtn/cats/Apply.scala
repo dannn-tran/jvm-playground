@@ -15,6 +15,3 @@ object Apply:
   val listApply: Apply[List] = new Apply[List]:
     override def map[A, B](fa: List[A])(f: A => B): List[B] = listFunctor.map(fa)(f)
     override def ap[A, B](f: List[A => B])(fa: List[A]): List[B] = f.flatMap(map(fa)(_))
-    
-  
-    

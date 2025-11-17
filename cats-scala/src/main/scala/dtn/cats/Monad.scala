@@ -25,7 +25,7 @@ object Monad:
     override def flatten[A](ff: List[List[A]]): List[A] = ff.flatten()
 
   case class OptionT[F[_], A](value: F[Option[A]])
-  def optionTMonad[F[_]](using mf: Monad[F]) = new Monad[[T] =>> OptionT[F, T]]:
+  def optionTMonad[F[_]](using mf: Monad[F]): Monad[[T] =>> OptionT[F, T]] = new Monad[[T] =>> OptionT[F, T]]:
     override def map[A, B](fa: OptionT[F, A])(f: A => B): OptionT[F, B] = OptionT(mf.map(fa.value)(_.map(f)))
     override def ap[A, B](f: OptionT[F, A => B])(fa: OptionT[F, A]): OptionT[F, B] = {
       val funTransform: Option[A => B] => Option[A] => Option[B] = optA2b => optA => optA2b.flatMap(optA.map)
@@ -42,3 +42,20 @@ object Monad:
       val fo = mf.flatten(ffo)
       OptionT(fo)
 
+  def eitherMonad[E]: Monad[[T] =>> Either[E, T]] = new Monad[[T] =>> Either[E, T]] {
+    override def flatten[A](ff: Either[E, Either[E, A]]): Either[E, A] = ff match {
+      case Left(e) => Left(e)
+      case Right(Left(e)) => Left(e)
+      case Right(Right(a)) => Right(a)
+    }
+    override def pure[A](x: A): Either[E, A] = Right(x)
+    override def ap[A, B](f: Either[E, A => B])(fa: Either[E, A]): Either[E, B] = (f, fa) match {
+      case (Left(e), _) => Left(e)
+      case (_, Left(e)) => Left(e)
+      case (Right(f), Right(a)) => Right(f(a))
+    }
+    override def map[A, B](fa: Either[E, A])(f: A => B): Either[E, B] = fa match {
+      case Left(e) => Left(e)
+      case Right(a) => Right(f(a))
+    }
+  }
